@@ -1,12 +1,54 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from "react";
+import { AssessmentIntro } from "@/components/AssessmentIntro";
+import { AssessmentFlow } from "@/components/AssessmentFlow";
+import { AssessmentResults } from "@/components/AssessmentResults";
+import { AssessmentResponse, AssessmentResults as Results } from "@/types/assessment";
+import { calculateResults } from "@/utils/scoring";
+
+type AppState = "intro" | "assessment" | "results";
 
 const Index = () => {
+  const [currentState, setCurrentState] = useState<AppState>("intro");
+  const [assessmentResults, setAssessmentResults] = useState<Results | null>(null);
+
+  const handleStartAssessment = () => {
+    setCurrentState("assessment");
+  };
+
+  const handleAssessmentComplete = (responses: AssessmentResponse[]) => {
+    const results = calculateResults(responses);
+    setAssessmentResults(results);
+    setCurrentState("results");
+  };
+
+  const handleRestart = () => {
+    setCurrentState("intro");
+    setAssessmentResults(null);
+  };
+
+  const handleBackToIntro = () => {
+    setCurrentState("intro");
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div>
+      {currentState === "intro" && (
+        <AssessmentIntro onStart={handleStartAssessment} />
+      )}
+      
+      {currentState === "assessment" && (
+        <AssessmentFlow 
+          onComplete={handleAssessmentComplete}
+          onBack={handleBackToIntro}
+        />
+      )}
+      
+      {currentState === "results" && assessmentResults && (
+        <AssessmentResults 
+          results={assessmentResults}
+          onRestart={handleRestart}
+        />
+      )}
     </div>
   );
 };
